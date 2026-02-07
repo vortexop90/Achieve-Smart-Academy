@@ -8,6 +8,14 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('updates');
   const [status, setStatus] = useState('');
   
+  // Authentication Check
+  useEffect(() => {
+    const authCookie = document.cookie.split('; ').find(row => row.startsWith('admin_auth='));
+    if (!authCookie) {
+      router.push('/admin/login');
+    }
+  }, [router]);
+
   // Data List State
   const [items, setItems] = useState<any[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
