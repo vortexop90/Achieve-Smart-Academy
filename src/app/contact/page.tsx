@@ -6,15 +6,44 @@ import { Phone, Mail, MapPin, Send, CheckCircle, Clock, MessageCircle } from 'lu
 
 const Contact = () => {
   const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
+  const [formData, setFormData] = useState({
+    name: '',
+    class: '',
+    email: '',
+    phone: '',
+    message: ''
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormStatus('submitting');
-    // Simulate form submission
-    setTimeout(() => {
-      setFormStatus('success');
-      setTimeout(() => setFormStatus('idle'), 3000);
-    }, 1500);
+    
+    try {
+      const res = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      
+      const data = await res.json();
+      
+      if (data.success) {
+        setFormStatus('success');
+        setFormData({ name: '', class: '', email: '', phone: '', message: '' }); // Reset form
+        setTimeout(() => setFormStatus('idle'), 3000);
+      } else {
+        alert('Failed to send message: ' + (data.error || 'Unknown error'));
+        setFormStatus('idle');
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('An error occurred. Please try again.');
+      setFormStatus('idle');
+    }
   };
 
   return (
@@ -151,6 +180,8 @@ const Contact = () => {
                   <input 
                     type="text" 
                     id="name" 
+                    value={formData.name}
+                    onChange={handleChange}
                     required
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all bg-gray-50 focus:bg-white"
                     placeholder="John Doe"
@@ -160,6 +191,8 @@ const Contact = () => {
                   <label htmlFor="class" className="block text-sm font-medium text-gray-700 mb-1">Class/Grade</label>
                   <select 
                     id="class" 
+                    value={formData.class}
+                    onChange={handleChange}
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all bg-gray-50 focus:bg-white"
                   >
                     <option value="">Select Class</option>
@@ -178,6 +211,8 @@ const Contact = () => {
                   <input 
                     type="email" 
                     id="email" 
+                    value={formData.email}
+                    onChange={handleChange}
                     required
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all bg-gray-50 focus:bg-white"
                     placeholder="john@example.com"
@@ -188,6 +223,8 @@ const Contact = () => {
                   <input 
                     type="tel" 
                     id="phone" 
+                    value={formData.phone}
+                    onChange={handleChange}
                     required
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all bg-gray-50 focus:bg-white"
                     placeholder="+91 98765 43210"
@@ -199,6 +236,8 @@ const Contact = () => {
                 <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">Message</label>
                 <textarea 
                   id="message" 
+                  value={formData.message}
+                  onChange={handleChange}
                   rows={4} 
                   required
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none bg-gray-50 focus:bg-white"
